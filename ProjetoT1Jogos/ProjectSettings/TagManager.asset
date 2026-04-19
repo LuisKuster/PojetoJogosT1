@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Anchor
+  - TubeSocket
   layers:
   - Default
   - TransparentFX
