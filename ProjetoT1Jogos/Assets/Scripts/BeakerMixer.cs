@@ -1,8 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 /// <summary>
 /// Anexe no objeto "Beaker water".
+/// O béquer sempre pode ser pego. O BeakerPourer só derrete o gelo se a mistura estiver correta.
 /// </summary>
 public class BeakerMixer : MonoBehaviour
 {
@@ -18,21 +21,29 @@ public class BeakerMixer : MonoBehaviour
     [SerializeField] private float volumeInicial = 0f;
 
     [Header("Cores das misturas")]
-    [SerializeField] private Color corMisturaValida   = new Color(0.5f, 0f, 0.8f); // roxo
-    [SerializeField] private Color corMisturaInvalida = new Color(0.2f, 0.1f, 0f); // marrom escuro
+    [SerializeField] private Color corMisturaValida   = new Color(0.5f, 0f, 0.8f);
+    [SerializeField] private Color corMisturaInvalida = new Color(0.2f, 0.1f, 0f);
+
+    [Header("Explosão")]
+    [SerializeField] private float tempoAteReset = 3f;
+    [SerializeField] private GameObject prefabFumaca;
 
     [Header("Som")]
-    [Tooltip("Som de borbulha/gota que toca cada vez que líquido cai no béquer.")]
     [SerializeField] private AudioClip somMisturando;
-    [Tooltip("Som de estouro que toca quando a mistura é inválida.")]
     [SerializeField] private AudioClip somExplosao;
+    [Tooltip("Som tocado quando a mistura correta é concluída.")]
+    [SerializeField] private AudioClip somSucesso;
     [SerializeField] [Range(0f, 1f)] private float volumeSom = 1f;
 
     private AudioSource audioSource;
+    private List<TestTubeIngredient> tubosDerramados = new List<TestTubeIngredient>();
     private Dictionary<TestTubeIngredient.Ingrediente, float> ingredientesRecebidos
         = new Dictionary<TestTubeIngredient.Ingrediente, float>();
+
     private float volumeAtual;
-    private bool  explosaoJaDisparada = false;
+    private bool  explosaoJaDisparada          = false;
+    private bool  misturaConcluidaComSucesso   = false;
+    private Color corOriginalLiquido;
 
     void Start()
     {
@@ -46,15 +57,26 @@ public class BeakerMixer : MonoBehaviour
             liquidTransform.localScale = s;
         }
 
+        if (liquidRenderer != null)
+            corOriginalLiquido = liquidRenderer.material.color;
+
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake  = false;
-        audioSource.spatialBlend = 1f; // som 3D — sai da posição do béquer
+        audioSource.spatialBlend = 1f;
         audioSource.volume       = volumeSom;
+
+        // Grab sempre habilitado — o jogador pode pegar o béquer a qualquer momento
+        // A restrição de derreter o gelo fica no BeakerPourer (checa MisturaValida())
     }
 
-    public void ReceberIngrediente(TestTubeIngredient.Ingrediente tipo, float volume)
+    public void ReceberIngrediente(TestTubeIngredient tubo, float volume)
     {
-        if (explosaoJaDisparada) return;
+        if (explosaoJaDisparada || misturaConcluidaComSucesso) return;
+
+        if (!tubosDerramados.Contains(tubo))
+            tubosDerramados.Add(tubo);
+
+        var tipo = tubo.GetIngrediente();
 
         if (ingredientesRecebidos.ContainsKey(tipo))
             ingredientesRecebidos[tipo] += volume;
@@ -73,15 +95,23 @@ public class BeakerMixer : MonoBehaviour
         bool temVermelho = ingredientesRecebidos.ContainsKey(TestTubeIngredient.Ingrediente.Vermelho);
         int  total       = ingredientesRecebidos.Count;
 
-        // Mistura válida: apenas Azul + Vermelho
         if (temAzul && temVermelho && total == 2)
         {
             AplicarCorLiquido(corMisturaValida);
-            Debug.Log("[BeakerMixer] Mistura válida! Azul + Vermelho = Roxo.");
+
+            if (!misturaConcluidaComSucesso)
+            {
+                misturaConcluidaComSucesso = true;
+
+                // Toca som de sucesso
+                if (audioSource != null && somSucesso != null)
+                    audioSource.PlayOneShot(somSucesso, volumeSom);
+
+                Debug.Log("[BeakerMixer] Mistura válida! Leve o béquer até o gelo.");
+            }
             return;
         }
 
-        // Só um ingrediente ainda — mostra a cor dele
         if (total == 1)
         {
             foreach (var kv in ingredientesRecebidos)
@@ -92,37 +122,52 @@ public class BeakerMixer : MonoBehaviour
             return;
         }
 
-        // Qualquer outra combinação = inválida
         AplicarCorLiquido(corMisturaInvalida);
         Debug.Log("[BeakerMixer] Mistura inválida!");
 
         if (!explosaoJaDisparada)
         {
             explosaoJaDisparada = true;
-            DispararExplosao();
+            StartCoroutine(SequenciaExplosao());
         }
     }
 
-    void DispararExplosao()
+    IEnumerator SequenciaExplosao()
     {
-        // Toca o som de estouro
         if (audioSource != null && somExplosao != null)
             audioSource.PlayOneShot(somExplosao, volumeSom);
 
-        // ================================================================
-        // TODO: Implementar animação de explosão aqui.
-        // Sugestões:
-        //   - Instantiate(explosaoPrefab, transform.position, Quaternion.identity);
-        //   - Physics.OverlapSphere para força radial nos objetos próximos
-        //   - SceneManager.LoadScene para reset da cena
-        // ================================================================
-        Debug.Log("[BeakerMixer] EXPLOSÃO! (visual ainda não implementado)");
+        if (prefabFumaca != null)
+        {
+            GameObject fumaca = Instantiate(prefabFumaca, transform.position, Quaternion.identity);
+            Destroy(fumaca, tempoAteReset + 1f);
+        }
+
+        Debug.Log($"[BeakerMixer] Explosão! Resetando em {tempoAteReset}s...");
+        yield return new WaitForSeconds(tempoAteReset);
+        ResetarTudo();
+    }
+
+    void ResetarTudo()
+    {
+        foreach (var tubo in tubosDerramados)
+            if (tubo != null) tubo.Resetar();
+
+        tubosDerramados.Clear();
+        ingredientesRecebidos.Clear();
+        volumeAtual                = 0f;
+        explosaoJaDisparada        = false;
+        misturaConcluidaComSucesso = false;
+
+        AtualizarEscalaLiquido();
+        AplicarCorLiquido(corOriginalLiquido);
+
+        Debug.Log("[BeakerMixer] Resetado. Pode tentar de novo!");
     }
 
     void TocarSomMistura()
     {
         if (audioSource == null || somMisturando == null) return;
-        // PlayOneShot para não cortar caso chegue vários frames seguidos
         if (!audioSource.isPlaying)
             audioSource.PlayOneShot(somMisturando, volumeSom);
     }
@@ -155,8 +200,8 @@ public class BeakerMixer : MonoBehaviour
         };
     }
 
-    public bool MisturaValida() =>
-        ingredientesRecebidos.ContainsKey(TestTubeIngredient.Ingrediente.Azul)
-        && ingredientesRecebidos.ContainsKey(TestTubeIngredient.Ingrediente.Vermelho)
-        && ingredientesRecebidos.Count == 2;
+    /// <summary>
+    /// Consultado pelo BeakerPourer para saber se pode derreter o gelo.
+    /// </summary>
+    public bool MisturaValida() => misturaConcluidaComSucesso;
 }

@@ -49,7 +49,7 @@ public class TestTubeIngredient : MonoBehaviour
         audioSource.clip         = somDerramando;
         audioSource.loop         = true;
         audioSource.playOnAwake  = false;
-        audioSource.spatialBlend = 1f; // som 3D — sai da posição do tubo
+        audioSource.spatialBlend = 1f;
         audioSource.volume       = volumeSom;
     }
 
@@ -86,15 +86,29 @@ public class TestTubeIngredient : MonoBehaviour
             PararSom();
 
             if (beakerMixer != null)
-                beakerMixer.ReceberIngrediente(ingrediente, volumeInicial);
+                beakerMixer.ReceberIngrediente(this, volumeInicial);
         }
         else
         {
             if (beakerMixer != null)
-                beakerMixer.ReceberIngrediente(ingrediente, reducao);
+                beakerMixer.ReceberIngrediente(this, reducao);
         }
 
         AtualizarEscalaLiquido();
+    }
+
+    /// <summary>
+    /// Chamado pelo BeakerMixer quando a mistura deu errado.
+    /// Devolve o tubo ao estado original.
+    /// </summary>
+    public void Resetar()
+    {
+        volumeAtual    = volumeInicial;
+        jaDerramouTudo = false;
+        inZonaDerramar = false;
+        PararSom();
+        AtualizarEscalaLiquido();
+        Debug.Log($"[TestTubeIngredient] {ingrediente} resetado.");
     }
 
     void TocarSom()
