@@ -7,6 +7,7 @@ TagManager:
   - Anchor
   - TubeSocket
   - ZonaDerramar
+  - ZonaDerremarGelo
   layers:
   - Default
   - TransparentFX

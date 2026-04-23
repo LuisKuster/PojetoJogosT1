@@ -1,32 +1,51 @@
 using UnityEngine;
-
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 /// <summary>
 /// Anexe no objeto "Espelho" da porta.
-/// Bloqueia o XRGrabInteractable até o puzzle ser resolvido.
+/// Trava a porta travando o Rigidbody e desabilitando o Grab.
 /// </summary>
 public class PortaLock : MonoBehaviour
 {
-    private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grab;
+    private XRGrabInteractable grab;
+    private Rigidbody          rb;
 
     void Start()
     {
-        grab = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+        grab = GetComponent<XRGrabInteractable>();
+        rb   = GetComponent<Rigidbody>();
 
-        // Porta começa travada
+        TravarPorta();
+    }
+
+    void TravarPorta()
+    {
+        // Desabilita o Grab — não pode ser pego
         if (grab != null)
             grab.enabled = false;
 
-        Debug.Log("[PortaLock] Porta travada. Resolva o puzzle para abrir.");
+        // Torna kinematic e congela tudo — não pode ser empurrado nem girar
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
+
+        Debug.Log("[PortaLock] Porta travada.");
     }
 
-    /// <summary>
-    /// Chamado pelo GeloDaTranca quando o gelo some.
-    /// </summary>
     public void LiberarPorta()
     {
+        // Reabilita o Grab
         if (grab != null)
             grab.enabled = true;
+
+        // Descongela o Rigidbody pra porta funcionar com o HingeJoint
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.constraints = RigidbodyConstraints.None;
+        }
 
         Debug.Log("[PortaLock] Porta liberada! Pode abrir.");
     }
