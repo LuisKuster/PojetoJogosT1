@@ -2,24 +2,24 @@ using UnityEngine;
 
 /// <summary>
 /// Anexe no "Beaker water".
-/// Só derrete o gelo se a mistura estiver correta (BeakerMixer.MisturaValida()).
+/// So derrete o gelo se a mistura estiver correta.
+/// Spawna UMA instancia de fumaca quando o gelo termina de derreter.
 /// </summary>
 public class BeakerPourer : MonoBehaviour
 {
     [Header("Som")]
-    [Tooltip("Som de líquido saindo do béquer enquanto está inclinado no gelo.")]
     [SerializeField] private AudioClip somDerramando;
     [SerializeField] [Range(0f, 1f)] private float volumeSom = 1f;
 
     [Header("Derramamento")]
-    [SerializeField] private float anguloMinDerramar = 100f;
+    [SerializeField] private float anguloMinDerramar  = 100f;
     [SerializeField] private float velocidadeDerramar = 0.5f;
 
-    private AudioSource audioSource;
-    private BeakerMixer beakerMixer;
-    private GeloDaTranca geloAtual  = null;
-    private bool inZonaGelo         = false;
-    private bool jaDerramouTudo     = false;
+    private AudioSource  audioSource;
+    private BeakerMixer  beakerMixer;
+    private GeloDaTranca geloAtual      = null;
+    private bool         inZonaGelo     = false;
+    private bool         jaDerramouTudo = false;
 
     void Start()
     {
@@ -41,7 +41,6 @@ public class BeakerPourer : MonoBehaviour
             return;
         }
 
-        // Só age se a mistura estiver correta
         if (beakerMixer == null || !beakerMixer.MisturaValida())
         {
             PararSom();
@@ -53,12 +52,17 @@ public class BeakerPourer : MonoBehaviour
         if (angulo > anguloMinDerramar)
         {
             TocarSom();
+
             float reducao  = velocidadeDerramar * Time.deltaTime;
             bool  terminou = geloAtual.ReceberLiquido(reducao);
+
             if (terminou)
             {
                 jaDerramouTudo = true;
                 PararSom();
+
+                // UMA instancia de fumaca quando o gelo termina
+                beakerMixer.InstanciarEfeitoGelo(geloAtual.transform.position);
             }
         }
         else
@@ -85,7 +89,6 @@ public class BeakerPourer : MonoBehaviour
         {
             geloAtual  = other.GetComponentInParent<GeloDaTranca>();
             inZonaGelo = true;
-            Debug.Log("[BeakerPourer] Béquer entrou na zona do gelo.");
         }
     }
 
@@ -96,7 +99,6 @@ public class BeakerPourer : MonoBehaviour
             inZonaGelo = false;
             geloAtual  = null;
             PararSom();
-            Debug.Log("[BeakerPourer] Béquer saiu da zona do gelo.");
         }
     }
 }

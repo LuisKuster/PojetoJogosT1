@@ -2,23 +2,22 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Anexe no cubo de gelo que está em cima da maçaneta.
-/// Quando receber líquido suficiente do béquer, some e libera a porta.
+/// Anexe no cubo de gelo que esta em cima da machaneta.
+/// Quando receber liquido suficiente do bequer, some e libera a porta.
+/// O som de vitoria e gerenciado pelo PortaLock.
 /// </summary>
 public class GeloDaTranca : MonoBehaviour
 {
-    [Header("Referências")]
-    [Tooltip("Referência ao PortaLock do Espelho da porta.")]
+    [Header("Referencias")]
+    [Tooltip("Referencia ao PortaLock do Espelho da porta.")]
     [SerializeField] private PortaLock portaLock;
 
-    [Header("Configurações")]
-    [Tooltip("Quantidade total de líquido necessária para derreter o gelo.")]
+    [Header("Configuracoes")]
     [SerializeField] private float volumeParaDerretar = 1f;
-
-    [Tooltip("Tempo da animação de sumiço do gelo em segundos.")]
-    [SerializeField] private float tempoSumico = 0.5f;
+    [SerializeField] private float tempoSumico        = 0.5f;
 
     [Header("Som")]
+    [Tooltip("Som de derretimento/gelo quebrando.")]
     [SerializeField] private AudioClip somDerretendo;
     [SerializeField] [Range(0f, 1f)] private float volumeSom = 1f;
 
@@ -56,11 +55,11 @@ public class GeloDaTranca : MonoBehaviour
 
     IEnumerator Derreter()
     {
-        // Toca som de derretimento
+        // Som de derretimento
         if (audioSource != null && somDerretendo != null)
             audioSource.PlayOneShot(somDerretendo, volumeSom);
 
-        // Animação de sumiço: escala vai a zero suavemente
+        // Animacao de sumico
         Vector3 escalaInicial = transform.localScale;
         float   tempo         = 0f;
 
@@ -72,13 +71,12 @@ public class GeloDaTranca : MonoBehaviour
             yield return null;
         }
 
-        // Libera a porta
+        // Libera a porta (som de vitoria toca no PortaLock)
         if (portaLock != null)
             portaLock.LiberarPorta();
 
         Debug.Log("[GeloDaTranca] Gelo derreteu! Porta liberada.");
 
-        // Destrói o cubo de gelo
         Destroy(gameObject);
     }
 }
