@@ -17,9 +17,7 @@ public class BeakerMixer : MonoBehaviour
     [SerializeField] [Range(0f, 1f)] private float volumeSom = 1f;
 
     [Header("Efeitos")]
-    [Tooltip("Prefab de fumaca instanciado quando a mistura da errado.")]
     [SerializeField] private GameObject prefabFumacaErro;
-    [Tooltip("Prefab de fumaca instanciado quando o bequer e usado no gelo.")]
     [SerializeField] private GameObject prefabFumacaGelo;
     [SerializeField] private float tempoFumaca = 2f;
 
@@ -108,8 +106,6 @@ public class BeakerMixer : MonoBehaviour
             else
                 temIngredienteErrado = true;
 
-            Debug.Log($"[BeakerMixer] {tipo} completo! Totais: {todosCompletos.Count}/3");
-
             if (todosCompletos.Count >= 3)
                 AvaliarResultado();
         }
@@ -124,24 +120,15 @@ public class BeakerMixer : MonoBehaviour
             misturaValida = true;
             SetAltura(alturaMaxima);
             TocarSom(somBorbulha);
-            Debug.Log("[BeakerMixer] Mistura correta! Leve o bequer ao gelo.");
         }
         else
         {
             TocarSom(somExplosao);
-
-            // Fumaca de erro na posicao do bequer
             InstanciarFumaca(prefabFumacaErro, transform.position);
-
-            Debug.Log($"[BeakerMixer] Mistura errada! Resetando em {tempoAteReset}s...");
             StartCoroutine(ResetarApos(tempoAteReset));
         }
     }
 
-    /// <summary>
-    /// Chamado pelo BeakerPourer quando o bequer toca o gelo com mistura correta.
-    /// Spawna o efeito de fumaca/vapor no gelo.
-    /// </summary>
     public void InstanciarEfeitoGelo(Vector3 posicao)
     {
         InstanciarFumaca(prefabFumacaGelo, posicao);
@@ -156,7 +143,6 @@ public class BeakerMixer : MonoBehaviour
 
     void AtualizarVisual()
     {
-        // Altura
         float alturaTotal = 0f;
         foreach (var kv in volumeAcumulado)
         {
@@ -166,7 +152,6 @@ public class BeakerMixer : MonoBehaviour
         }
         SetAltura(Mathf.Min(alturaTotal, alturaMaxima));
 
-        // Cor media dos ingredientes com volume > 0
         int   count = 0;
         float r = 0, g = 0, b = 0;
 
@@ -236,8 +221,6 @@ public class BeakerMixer : MonoBehaviour
 
         SetAltura(0f);
         SetCorLiquido(Color.clear);
-
-        Debug.Log("[BeakerMixer] Resetado. Pode tentar de novo!");
     }
 
     Color GetCorDoIngrediente(TestTubeIngredient.Ingrediente tipo)

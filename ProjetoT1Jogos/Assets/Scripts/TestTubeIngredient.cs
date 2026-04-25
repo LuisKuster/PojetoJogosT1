@@ -1,8 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Anexe em cada "Glass_Lab_test_tube with liquid".
-/// </summary>
 public class TestTubeIngredient : MonoBehaviour
 {
     public enum Ingrediente { Vermelho, Rosa, Verde, Preto, Azul, Amarelo }
@@ -10,8 +7,8 @@ public class TestTubeIngredient : MonoBehaviour
     [Header("Ingrediente")]
     [SerializeField] private Ingrediente ingrediente;
 
-    [Header("Referências")]
-    [SerializeField] private Transform  liquidTransform;
+    [Header("Referencias")]
+    [SerializeField] private Transform   liquidTransform;
     [SerializeField] private BeakerMixer beakerMixer;
 
     [Header("Derramamento")]
@@ -24,14 +21,10 @@ public class TestTubeIngredient : MonoBehaviour
     [SerializeField] [Range(0f, 1f)] private float volumeSom = 1f;
 
     private AudioSource audioSource;
-    private bool  jaDerramouTudo  = false;
+    private bool  jaDerramouTudo = false;
     private float volumeAtual;
-
-    // Conta quantos colliders da ZonaDerramar estão se sobrepondo ao tubo.
-    // Usar contador em vez de bool evita que OnTriggerExit de um collider
-    // cancele a zona quando ainda há outro collider ativo.
-    private int zonaCount = 0;
-    private bool InZona => zonaCount > 0;
+    private int   zonaCount = 0;
+    private bool  InZona => zonaCount > 0;
 
     void Start()
     {
@@ -70,8 +63,6 @@ public class TestTubeIngredient : MonoBehaviour
     {
         float reducao = velocidadeDerramar * Time.deltaTime;
 
-        // Se o volume restante for pequeno, derrama tudo de uma vez
-        // evita ficar preso com gotinhas que nunca atingem 0
         if (volumeAtual - reducao < volumeInicial * 0.05f)
             reducao = volumeAtual;
 
@@ -98,7 +89,6 @@ public class TestTubeIngredient : MonoBehaviour
         zonaCount      = 0;
         PararSom();
         AtualizarEscalaLiquido();
-        Debug.Log($"[TestTubeIngredient] {ingrediente} resetado.");
     }
 
     void TocarSom()

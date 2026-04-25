@@ -8,13 +8,12 @@ public class PortaCorrerController : MonoBehaviour
     void Start()
     {
         joint = GetComponent<ConfigurableJoint>();
-        Travar(); // começa travada
+        Travar();
     }
 
     public void Travar()
     {
         travada = true;
-        // Trava o eixo X também
         joint.xMotion = ConfigurableJointMotion.Locked;
     }
 
@@ -22,8 +21,6 @@ public class PortaCorrerController : MonoBehaviour
     {
         if (!travada) return;
         travada = false;
-        // Libera o eixo X com o limite que você já tinha
         joint.xMotion = ConfigurableJointMotion.Limited;
-        print("Porta destravada!");
     }
 }

@@ -1,15 +1,11 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class HeadCollisionDetector : MonoBehaviour
 {
-    [SerializeField, Range(0, 0.5f)]
-    private float _detectionDelay = 0.05f;
-    [SerializeField]
-    private float _detectionDistance = 0.2f;
-    [SerializeField]
-    private LayerMask _detectionLayers;
+    [SerializeField, Range(0, 0.5f)] private float     _detectionDelay    = 0.05f;
+    [SerializeField]                 private float     _detectionDistance = 0.2f;
+    [SerializeField]                 private LayerMask _detectionLayers;
 
     public List<RaycastHit> DetectedColliderHits { get; private set; }
 
@@ -30,14 +26,9 @@ public class HeadCollisionDetector : MonoBehaviour
             (-transform.forward - transform.right).normalized
         };
 
-        RaycastHit hit;
         foreach (var dir in directions)
-        {
-            if (Physics.Raycast(position, dir, out hit, distance, mask))
-            {
+            if (Physics.Raycast(position, dir, out RaycastHit hit, distance, mask))
                 detectedHits.Add(hit);
-            }
-        }
 
         return detectedHits;
     }

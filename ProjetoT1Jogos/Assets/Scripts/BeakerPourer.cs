@@ -1,10 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Anexe no "Beaker water".
-/// So derrete o gelo se a mistura estiver correta.
-/// Spawna UMA instancia de fumaca quando o gelo termina de derreter.
-/// </summary>
 public class BeakerPourer : MonoBehaviour
 {
     [Header("Som")]
@@ -60,8 +55,6 @@ public class BeakerPourer : MonoBehaviour
             {
                 jaDerramouTudo = true;
                 PararSom();
-
-                // UMA instancia de fumaca quando o gelo termina
                 beakerMixer.InstanciarEfeitoGelo(geloAtual.transform.position);
             }
         }

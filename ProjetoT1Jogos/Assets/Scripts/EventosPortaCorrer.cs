@@ -14,12 +14,11 @@ public class EventosPortaCorrer : MonoBehaviour
 
     float GetJointLinearX()
     {
-        Vector3 worldAnchor = joint.transform.TransformPoint(joint.anchor);
-        Vector3 connectedAnchor = joint.connectedAnchor;
-        Vector3 delta = worldAnchor - connectedAnchor;
-        Vector3 axisX = joint.transform.TransformDirection(Vector3.right);
-        float displacementX = Vector3.Dot(delta, axisX);
-        return displacementX;
+        Vector3 worldAnchor      = joint.transform.TransformPoint(joint.anchor);
+        Vector3 connectedAnchor  = joint.connectedAnchor;
+        Vector3 delta            = worldAnchor - connectedAnchor;
+        Vector3 axisX            = joint.transform.TransformDirection(Vector3.right);
+        return Vector3.Dot(delta, axisX);
     }
 
     void Update()
